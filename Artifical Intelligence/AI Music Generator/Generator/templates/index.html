@@ -1,0 +1,497 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>🎧 AI Music Mixer</title>
+
+  <!-- Embedded CSS (modern glass/neon theme) -->
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap');
+
+    :root{
+      --bg1: #0f1724;
+      --bg2: #0b1020;
+      --card: rgba(255,255,255,0.06);
+      --accent1: #4ee0c9;
+      --accent2: #6b7cff;
+      --glass-border: rgba(255,255,255,0.08);
+      --muted: #bfc8d9;
+    }
+
+    html,body{
+      height:100%;
+      margin:0;
+      font-family: 'Poppins', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial;
+      background: radial-gradient(1000px 600px at 10% 10%, rgba(107,124,255,0.12), transparent),
+                  radial-gradient(800px 400px at 90% 90%, rgba(78,224,201,0.06), transparent),
+                  linear-gradient(180deg, var(--bg1), var(--bg2));
+      -webkit-font-smoothing:antialiased;
+      color:white;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding:24px;
+      box-sizing:border-box;
+    }
+
+    .wrap{
+      width:980px;
+      max-width:100%;
+      background: linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.02));
+      border-radius:16px;
+      box-shadow: 0 10px 40px rgba(2,6,23,0.6);
+      border:1px solid var(--glass-border);
+      overflow:hidden;
+      display:grid;
+      grid-template-columns: 380px 1fr;
+      gap:0;
+      min-height:560px;
+    }
+
+    .panel-left{
+      padding:28px;
+      background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+      border-right: 1px solid rgba(255,255,255,0.02);
+      display:flex;
+      flex-direction:column;
+      gap:18px;
+    }
+
+    .brand{
+      display:flex;
+      align-items:center;
+      gap:12px;
+    }
+    .logo{
+      width:52px;
+      height:52px;
+      border-radius:12px;
+      background: linear-gradient(135deg, var(--accent1), var(--accent2));
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      font-weight:700;
+      color:#041022;
+      box-shadow: 0 6px 18px rgba(107,124,255,0.12), inset 0 -4px 12px rgba(255,255,255,0.06);
+      font-size:18px;
+    }
+    .brand h1{
+      margin:0;
+      font-size:18px;
+      letter-spacing:-0.2px;
+    }
+    .brand p{ margin:0; font-size:12px; color:var(--muted); }
+
+    .desc{
+      font-size:14px;
+      color:var(--muted);
+      line-height:1.45;
+      margin-top:6px;
+    }
+
+    .box{
+      background: var(--card);
+      border-radius:12px;
+      padding:14px;
+      border:1px solid rgba(255,255,255,0.02);
+    }
+
+    .genres{
+      display:flex;
+      flex-direction:column;
+      gap:8px;
+      max-height:260px;
+      overflow:auto;
+      padding-right:6px;
+    }
+
+    label.genre{
+      display:flex;
+      align-items:center;
+      gap:12px;
+      padding:10px;
+      border-radius:10px;
+      cursor:pointer;
+      transition:0.18s;
+      user-select:none;
+    }
+    label.genre:hover{ transform: translateX(4px); background: linear-gradient(90deg, rgba(255,255,255,0.01), rgba(255,255,255,0.005)); }
+    input[type="checkbox"]{ width:18px; height:18px; accent-color: var(--accent1); }
+
+    .controls{
+      display:flex;
+      gap:12px;
+      margin-top:6px;
+      align-items:center;
+    }
+
+    .btn{
+      background: linear-gradient(90deg,var(--accent1),var(--accent2));
+      color:#041022;
+      border:none;
+      padding:12px 18px;
+      border-radius:12px;
+      font-weight:700;
+      cursor:pointer;
+      box-shadow: 0 8px 20px rgba(107,124,255,0.10);
+      transition: transform .18s ease, box-shadow .18s ease;
+    }
+    .btn.secondary{
+      background:transparent;
+      color:var(--muted);
+      border:1px solid rgba(255,255,255,0.04);
+      font-weight:600;
+    }
+    .btn:active{ transform:translateY(1px); }
+
+    .small{
+      font-size:13px;
+      color:var(--muted);
+    }
+
+    .progress{
+      height:10px;
+      width:100%;
+      background: rgba(255,255,255,0.03);
+      border-radius:10px;
+      overflow:hidden;
+      margin-top:8px;
+    }
+    .progress .bar{
+      height:100%;
+      width:0%;
+      background: linear-gradient(90deg,var(--accent2),var(--accent1));
+      transition: width 0.6s ease;
+    }
+
+    .panel-right{
+      padding:28px;
+      display:flex;
+      flex-direction:column;
+      gap:18px;
+      justify-content:space-between;
+      background:
+        linear-gradient(180deg, rgba(255,255,255,0.01), rgba(255,255,255,0.006));
+    }
+
+    .player-card{
+      background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+      border-radius:14px;
+      padding:18px;
+      display:flex;
+      gap:16px;
+      align-items:center;
+      border:1px solid rgba(255,255,255,0.02);
+    }
+
+    .cover{
+      width:112px;
+      height:112px;
+      border-radius:12px;
+      background: linear-gradient(135deg, rgba(107,124,255,0.18), rgba(78,224,201,0.12));
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      font-weight:800;
+      color:white;
+      font-size:20px;
+      box-shadow: 0 10px 30px rgba(2,6,23,0.6);
+    }
+
+    .track-info h2{ margin:0; font-size:18px; letter-spacing:-0.2px; }
+    .track-info p{ margin:6px 0 0 0; color:var(--muted); font-size:13px; }
+
+    audio#player{
+      width:100%;
+      outline:none;
+      margin-top:12px;
+      border-radius:10px;
+    }
+
+    .wave {
+      height:80px;
+      background: linear-gradient(90deg, rgba(255,255,255,0.01), rgba(255,255,255,0.005));
+      border-radius:10px;
+      display:flex;
+      gap:6px;
+      padding:10px;
+      align-items:end;
+      overflow:hidden;
+    }
+    .wave .bar {
+      width:6%;
+      background: linear-gradient(180deg, var(--accent2), var(--accent1));
+      border-radius:6px;
+      transition: height 0.12s linear;
+      align-self:flex-end;
+    }
+
+    .footer{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+      color:var(--muted);
+      font-size:13px;
+    }
+
+    .download{
+      background: linear-gradient(90deg,#ffd86b,#ff9a9e);
+      color:#041022;
+      padding:8px 12px;
+      border-radius:10px;
+      text-decoration:none;
+      font-weight:700;
+      box-shadow: 0 6px 20px rgba(255,154,154,0.08);
+    }
+
+    @media (max-width:900px){
+      .wrap{ grid-template-columns: 1fr; min-height:720px; width:720px; }
+      .panel-left{ order:2 }
+      .panel-right{ order:1 }
+      .cover{ width:88px; height:88px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap" role="application" aria-label="AI Music Mixer">
+    <div class="panel-left">
+      <div class="brand">
+        <div class="logo">AM</div>
+        <div>
+          <h1>AI Music Mixer</h1>
+          <p>Blend genres • Generate • Play & Download</p>
+        </div>
+      </div>
+
+      <div class="desc small">
+        Select genres below. The server will compose a short AI track. Click <strong>Generate</strong> and wait a few seconds.
+      </div>
+
+      <div class="box">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <div style="font-weight:700;">Choose genres</div>
+          <div class="small">Pick 1–3 for best results</div>
+        </div>
+
+        <form id="genresForm" style="margin-top:12px;">
+          <div class="genres" id="genresList">
+            <label class="genre"><input type="checkbox" name="genres" value="classical"> Classical</label>
+            <label class="genre"><input type="checkbox" name="genres" value="jazz"> Jazz</label>
+            <label class="genre"><input type="checkbox" name="genres" value="blues"> Blues</label>
+            <label class="genre"><input type="checkbox" name="genres" value="rock"> Rock</label>
+            <label class="genre"><input type="checkbox" name="genres" value="pop"> Pop</label>
+            <label class="genre"><input type="checkbox" name="genres" value="electronic"> Electronic</label>
+          </div>
+
+          <div class="controls" style="margin-top:14px;">
+            <button class="btn" id="generateBtn" type="button" aria-live="polite">✨ Generate</button>
+            <button class="btn secondary" id="clearBtn" type="button">Clear</button>
+          </div>
+
+          <div class="small" style="margin-top:10px;">Status</div>
+          <div class="progress">
+            <div class="bar" id="progressBar"></div>
+          </div>
+          <div id="statusText" class="small" style="margin-top:8px; color:var(--muted)">Idle</div>
+        </form>
+      </div>
+    </div>
+
+    <div class="panel-right">
+      <div>
+        <div class="player-card" aria-live="polite">
+          <div class="cover" id="cover">🎵</div>
+          <div style="flex:1">
+            <div class="track-info">
+              <h2 id="trackTitle">Your Generated Mix</h2>
+              <p id="trackMeta">No track yet — generate to start</p>
+            </div>
+
+            <audio id="player" controls hidden>
+              <source id="playerSource" src="" type="audio/mpeg">
+              Your browser does not support audio playback.
+            </audio>
+          </div>
+        </div>
+
+        <div style="margin-top:16px;" class="box">
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <div style="font-weight:700">Waveform</div>
+            <div style="color:var(--muted); font-size:13px" id="waveLabel">—</div>
+          </div>
+          <div class="wave" id="wave">
+            <div class="bar" style="height:28%"></div>
+            <div class="bar" style="height:32%"></div>
+            <div class="bar" style="height:20%"></div>
+            <div class="bar" style="height:40%"></div>
+            <div class="bar" style="height:18%"></div>
+            <div class="bar" style="height:34%"></div>
+            <div class="bar" style="height:22%"></div>
+            <div class="bar" style="height:26%"></div>
+            <div class="bar" style="height:30%"></div>
+            <div class="bar" style="height:24%"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="footer">
+        <div>Built by Gynorrj with ♥ • AI Music Mixer</div>
+        <a id="downloadLink" class="download" href="#" hidden>⬇ Download</a>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const generateBtn = document.getElementById('generateBtn');
+const clearBtn = document.getElementById('clearBtn');
+const statusText = document.getElementById('statusText');
+const progressBar = document.getElementById('progressBar');
+const player = document.getElementById('player');
+const playerSource = document.getElementById('playerSource');
+const trackTitle = document.getElementById('trackTitle');
+const trackMeta = document.getElementById('trackMeta');
+const downloadLink = document.getElementById('downloadLink');
+const waveBars = document.querySelectorAll('.wave .bar');
+
+function setProgress(p, txt){
+  progressBar.style.width = Math.max(0, Math.min(100, p)) + '%';
+  statusText.textContent = txt || '';
+}
+
+function animateWave(active){
+  if(!active){
+    waveBars.forEach((b,i)=> b.style.height = (20 + (i*3)%20) + '%');
+    return;
+  }
+  window._waveInterval = setInterval(()=>{
+    waveBars.forEach(b=>{
+      const h = 18 + Math.random()*70;
+      b.style.height = h + '%';
+    });
+  }, 120);
+}
+
+function stopWave(){
+  if(window._waveInterval) clearInterval(window._waveInterval);
+  animateWave(false);
+}
+
+clearBtn.addEventListener('click', ()=>{
+  document.querySelectorAll('input[name="genres"]').forEach(i=>i.checked=false);
+  setProgress(0,'Cleared');
+  trackTitle.textContent='Your Generated Mix';
+  trackMeta.textContent='No track yet — generate to start';
+  player.pause(); 
+  player.hidden=true;
+  downloadLink.hidden=true;
+  downloadLink.removeAttribute('download'); // Clear download attribute
+  stopWave();
+});
+
+generateBtn.addEventListener('click', async ()=>{
+  const checked = Array.from(document.querySelectorAll('input[name="genres"]:checked')).map(i=>i.value);
+  if(checked.length===0){ 
+    alert('Please select at least one genre.'); 
+    return; 
+  }
+
+  setProgress(10,'Starting AI generation...');
+  generateBtn.disabled=true; 
+  generateBtn.textContent='Generating...';
+
+  const fd = new FormData();
+  checked.forEach(g=>fd.append('genres',g));
+
+  try{
+    setProgress(30,'AI model creating music...');
+    const res = await fetch('/generate',{method:'POST', body:fd});
+    const data = await res.json();
+
+    if(!data || data.status!=='success'){ 
+      throw new Error(data?.message||'Server failed to generate'); 
+    }
+
+    const filename = data.filename;
+    console.log('Generated file:', filename);
+    
+    // Set up audio player
+    const audioUrl = '/generated/' + encodeURIComponent(filename);
+    const downloadUrl = '/download/' + encodeURIComponent(filename);
+    
+    // Set audio source with cache busting
+    playerSource.src = audioUrl + '?t=' + new Date().getTime();
+    player.load();
+    player.hidden = false;
+    
+    // Set download link properly
+    downloadLink.href = downloadUrl;
+    downloadLink.setAttribute('download', filename); // Important: set download attribute
+    downloadLink.hidden = false;
+    
+    // Try to play audio
+    try {
+      await player.play();
+      console.log('Audio playing successfully');
+    } catch (playError) {
+      console.log('Autoplay prevented:', playError);
+      // Show controls if autoplay is blocked
+      player.controls = true;
+    }
+    
+    trackTitle.textContent = 'AI Mix — ' + checked.join(' + ');
+    trackMeta.textContent = 'AI Generated Music';
+    setProgress(100,'Complete — playing now!');
+    animateWave(true);
+
+  } catch(err){
+    console.error('Generation error:', err); 
+    setProgress(0,'Error: ' + err.message); 
+    alert('Failed: ' + err.message);
+  } finally{
+    generateBtn.disabled=false; 
+    generateBtn.textContent='✨ Generate';
+  }
+});
+
+// Audio event listeners
+player.addEventListener('play', ()=>{ 
+  animateWave(true); 
+  document.getElementById('waveLabel').textContent='Now playing'; 
+});
+
+player.addEventListener('pause', ()=>{ 
+  stopWave(); 
+  document.getElementById('waveLabel').textContent='Paused'; 
+});
+
+player.addEventListener('ended', ()=>{ 
+  stopWave(); 
+  document.getElementById('waveLabel').textContent='Finished'; 
+});
+
+player.addEventListener('error', (e) => {
+  console.error('Audio player error:', e);
+  console.error('Audio error details:', player.error);
+});
+
+// Download link event listener for debugging
+downloadLink.addEventListener('click', (e) => {
+  console.log('Download link clicked');
+  console.log('Download href:', downloadLink.href);
+  console.log('Download filename:', downloadLink.getAttribute('download'));
+});
+
+// Keyboard shortcut
+document.addEventListener('keydown',(e)=>{ 
+  if(e.key==='Enter' && document.activeElement.tagName!=='INPUT'){ 
+    e.preventDefault(); 
+    generateBtn.click(); 
+  } 
+});
+
+animateWave(false);
+  </script>
+</body>
+</html>

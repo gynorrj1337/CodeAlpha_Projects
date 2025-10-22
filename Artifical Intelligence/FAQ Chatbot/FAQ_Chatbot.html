@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>HelpHub Chatbot</title>
+  <style>
+    body {
+      margin: 0;
+      background: #f4f7fa;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    .chat-container {
+      width: 650px;
+      height: 550px;
+      margin: 45px auto;
+      background: #ffffff;
+      border-radius: 16px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .chat-header {
+      background: linear-gradient(135deg, #007acc, #00b4d8);
+      color: white;
+      padding: 20px;
+      font-size: 20px;
+      font-weight: bold;
+      text-align: center;
+    }
+
+    .chat-body {
+      height: 400px;
+      padding: 20px;
+      background: #f9f9f9;
+      overflow-y: auto;
+      /* remove css scroll-behavior, JS handles smooth */
+    }
+
+    .messages {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .message {
+      max-width: 75%;
+      padding: 12px 18px;
+      border-radius: 18px;
+      font-size: 15px;
+      line-height: 1.4;
+      word-wrap: break-word;
+      animation: fadeIn 0.3s ease-in;
+    }
+
+    .user-msg {
+      align-self: flex-end;
+      background: #d1f5d3;
+      border-bottom-right-radius: 0;
+    }
+
+    .bot-msg {
+      align-self: flex-start;
+      background: #e8ecf1;
+      border-bottom-left-radius: 0;
+    }
+
+    .chat-footer {
+      display: flex;
+      gap: 10px;
+      padding: 15px;
+      border-top: 1px solid #ddd;
+      background: #ffffff;
+    }
+
+    .chat-footer input {
+      flex: 1;
+      padding: 12px 16px;
+      border: 1px solid #ccc;
+      border-radius: 24px;
+      font-size: 15px;
+      transition: border 0.2s ease;
+    }
+
+    .chat-footer input:focus {
+      border-color: #007acc;
+      outline: none;
+    }
+
+    .chat-footer button {
+      padding: 12px 20px;
+      border: none;
+      border-radius: 24px;
+      background: #007acc;
+      color: #fff;
+      font-size: 15px;
+      cursor: pointer;
+      transition: background 0.2s ease;
+    }
+
+    .chat-footer button:hover {
+      background: #005fa3;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+  </style>
+</head>
+<body>
+
+<div class="chat-container">
+  <div class="chat-header">🤖 HelpHub Chatbot</div>
+  <div class="chat-body" id="chatBody">
+    <div class="messages" id="chat">
+      <!-- can add something we need before starting conversatyion -->
+	  
+    </div>
+  </div>
+  <div class="chat-footer">
+    <input type="text" id="userInput" placeholder="Type a message..." onkeypress="checkEnter(event)" />
+    <button onclick="sendMessage()">Send</button>
+  </div>
+</div>
+
+<script>
+  function appendMessage(sender, text) {
+    const chat = document.getElementById("chat");
+    const chatBody = document.getElementById("chatBody");
+    const msgDiv = document.createElement("div");
+    msgDiv.classList.add("message", sender === "user" ? "user-msg" : "bot-msg");
+    msgDiv.textContent = text;
+    chat.appendChild(msgDiv);
+
+    requestAnimationFrame(() => {
+      chatBody.scrollTo({
+        top: chatBody.scrollHeight,
+        behavior: 'smooth'
+      });
+    });
+  }
+
+  function sendMessage() {
+    const input = document.getElementById("userInput");
+    const message = input.value.trim();
+    if (message === "") return;
+
+    appendMessage("user", message);
+    input.value = "";
+
+    fetch("/get_response", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ message: message })
+    })
+    .then(response => response.json())
+    .then(data => appendMessage("bot", data.reply))
+    .catch(() => appendMessage("bot", "⚠️ Sorry, something went wrong."));
+  }
+
+  function checkEnter(event) {
+    if (event.key === "Enter") {
+      event.preventDefault();
+      sendMessage();
+    }
+  }
+</script>
+
+</body>
+</html>
